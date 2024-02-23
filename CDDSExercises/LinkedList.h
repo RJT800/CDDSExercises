@@ -7,10 +7,10 @@ class LinkedList
 {
 public:
 	LinkedList();
-	//LinkedList(const LinkedList<AnyType>& other);
-	//~LinkedList();
+	LinkedList(const LinkedList<AnyType>& other);
+	~LinkedList();
 
-	//void destroy();
+	void destroy();
 
 	Iterator<AnyType> begin() const;
 	Iterator<AnyType> end()const;
@@ -18,7 +18,7 @@ public:
 	//AnyType first()const;
 	//AnyType last()const;
 
-	//bool contains(const AnyType value)const;
+	bool contains(const AnyType value)const;
 
 	void pushFront(const AnyType& value);
 	void pushBack(const AnyType& value);
@@ -31,14 +31,15 @@ public:
 
 	void print() const;
 
-	//void initilaize();
-	//bool isEmpty()const;
+	void initilaize();
 
-	//bool getData(Iterator<AnyType>& iter, int index);
+	bool isEmpty()const;
 
-	//int getLength() const;
+	bool getData(Iterator<AnyType>& iter, int index);
 
-	//void operator = (const LinkedList<AnyType>& otherLinkedList);
+	int getLength() const;
+
+	void operator = (const LinkedList<AnyType>& otherLinkedList);
 
 	//void sort();
 
@@ -54,8 +55,40 @@ inline LinkedList<AnyType>::LinkedList()
 {
 	m_first = nullptr;
 	m_last = nullptr;
+	m_nodeCount = 0;
 }
 
+template<typename AnyType>
+inline LinkedList<AnyType>::LinkedList(const LinkedList<AnyType>& other)
+{
+	initilaize();
+
+	for (Iterator<AnyType> iter = other.begin(); iter != other.end(); ++iter)
+	{
+		pushBack(*iter);
+	}
+}
+
+template<typename AnyType>
+inline LinkedList<AnyType>::~LinkedList()
+{
+	destroy();
+}
+
+
+template<typename AnyType>
+inline void LinkedList<AnyType>::destroy()
+{
+	if (m_nodeCount == 0)
+		return;
+
+	for (int i = 0; i < m_nodeCount; i++)
+	{
+		popBack();
+	}
+	initilaize();
+	return;
+}
 
 template<typename AnyType>
 inline Iterator<AnyType> LinkedList<AnyType>::begin() const
@@ -73,6 +106,13 @@ inline Iterator<AnyType> LinkedList<AnyType>::end() const
 	return Iterator<AnyType>(nullptr);
 }
 
+//template<typename AnyType>
+//inline AnyType LinkedList<AnyType>::first() const
+//{
+//	return Iterator<AnyType>(m_first);
+//	//return m_first;
+//}
+
 
 template<typename AnyType>
 inline void LinkedList<AnyType>::print() const
@@ -83,9 +123,76 @@ inline void LinkedList<AnyType>::print() const
 	}
 }
 
+template<typename AnyType>
+inline void LinkedList<AnyType>::initilaize()
+{
+	m_nodeCount = 0;
+	m_first = nullptr;
+	m_last = nullptr;
+}
+
+template<typename AnyType>
+inline bool LinkedList<AnyType>::isEmpty() const
+{
+	
+	return m_nodeCount<=0;
+}
+
+template<typename AnyType>
+inline bool LinkedList<AnyType>::getData(Iterator<AnyType>& iter, int index)
+{
+	//if index is invalid
+	if (index >= 0 || index < getLength())
+		return false;
+	else
+	{
+		//iterator goes through list until it lands on the index
+		iter = begin();
+		while (m_nodeCount == index)
+			++iter;
+
+		return true;
+	}
+	
+}
+
+template<typename AnyType>
+inline int LinkedList<AnyType>::getLength() const
+{
+	return m_nodeCount;
+}
+
+template<typename AnyType>
+inline void LinkedList<AnyType>::operator=(const LinkedList<AnyType>& otherLinkedList)
+{
+	if (otherLinkedList.isEmpty())
+	{
+		return;
+	}
+
+	destroy();
+
+	for (Iterator<AnyType> iter = otherLinkedList.begin(); iter != otherLinkedList.end(); ++iter)
+	{
+		pushBack(*iter);
+	}
+}
 
 
 
+template<typename AnyType>
+inline bool LinkedList<AnyType>::contains(const AnyType value) const
+{
+	// goes through the list to find a node with the value
+	for (Iterator<AnyType> iter = begin(); iter != end(); ++iter)
+	{
+		//if there is a match...
+		if (*iter == value)
+			return true;
+	}
+	//otherwise...
+		return false;
+}
 
 
 template<typename AnyType>
@@ -113,10 +220,6 @@ inline void LinkedList<AnyType>::pushBack(const AnyType& value)
 }
 
 
-
-
-
-
 template<typename AnyType>
 inline void LinkedList<AnyType>::pushFront(const AnyType& value)
 {
@@ -125,7 +228,7 @@ inline void LinkedList<AnyType>::pushFront(const AnyType& value)
 	// update thenode count to incluide the new node.
 	m_nodeCount++;
 	//if the last noe is null that must mean the list is empty...
-	if (!m_first)
+	if (!m_last)
 	{
 		//... so set the new node to be the first and last
 		m_last = newNode;
@@ -146,7 +249,7 @@ template<typename AnyType>
 inline bool LinkedList<AnyType>::insert(const AnyType& value, int index)
 {
 	//check if the index is within the bounds of the list
-	if (index < 0 || index >= m_nodeCount)
+	if (index < 0 || index >= m_nodeCount+1)
 		return false;
 
 	// if the list is empty...
@@ -161,10 +264,15 @@ inline bool LinkedList<AnyType>::insert(const AnyType& value, int index)
 	if (index == 0)
 	{
 		pushFront(value);
-
 		return true;
 	}
 
+
+	if (index == m_nodeCount)
+	{
+		pushBack(value);
+		return true;
+	}
 	Node<AnyType>* newNode = new Node<AnyType>(value);
 	Node<AnyType>* iter = m_first;
 
@@ -180,7 +288,7 @@ inline bool LinkedList<AnyType>::insert(const AnyType& value, int index)
 	newNode->previous = iter->previous;
 	newNode->previous->next = newNode;
 	iter->previous = newNode;
-
+	m_nodeCount++;
 	return true;
 }
 
@@ -211,13 +319,14 @@ inline bool LinkedList<AnyType>::remove(const AnyType& value)
 		popFront();
 		return true;
 	}
-	m_nodeCount--;
 
 	iter->next->previous = iter->previous;
 	iter->previous->next = iter->next;
 
 
 	delete iter;
+	m_nodeCount--;
+
 	return true;
 }
 
@@ -231,11 +340,15 @@ inline AnyType LinkedList<AnyType>::popFront()
 
 	AnyType value = m_first->data;
 
+	m_first = m_first->next;
+
 	if (m_first->previous)
 	{
 		delete m_first->previous;
-		m_first = m_first->next;
+		m_first->previous = nullptr;
 	}
+
+	m_nodeCount--;
 
 	return value;
 }
@@ -251,11 +364,14 @@ inline AnyType LinkedList<AnyType>::popBack()
 
 	m_last = m_last->previous;
 
+
 	if (m_last->next)
 	{
-		m_last = m_last->next;
+		delete m_last->next;
+		m_last->next = nullptr;
 	}
-	m_last->next = nullptr;
 
-	return true;
+	m_nodeCount--;
+
+	return value;
 }

@@ -9,18 +9,11 @@ class Iterator
 public:
 	Iterator();
 	Iterator(Node<AnyType>* node);
-
-
 	AnyType operator *();
-
 	Iterator<AnyType> operator ++();
 	Iterator<AnyType> operator --();
-
-
 	const bool operator ==(const Iterator<AnyType>& iter);
 	const bool operator != (const Iterator<AnyType>& iter);
-
-
 
 
 private:
@@ -51,7 +44,6 @@ inline Iterator<AnyType> Iterator<AnyType>::operator++()
 {
 	if (m_current)
 	{
-
 		Iterator<AnyType> iter = Iterator<AnyType>(m_current->next);
 		m_current = m_current->next;
 
